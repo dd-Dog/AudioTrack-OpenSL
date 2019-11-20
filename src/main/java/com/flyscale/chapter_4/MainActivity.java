@@ -2,97 +2,122 @@ package com.flyscale.chapter_4;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.media.AudioFormat;
-import android.media.AudioManager;
-import android.media.AudioTrack;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
-
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
+    static {
+        System.loadLibrary("soundtrack");
+    }
+
+    private static String TAG = "MainActivity";
+    private OpenSLESSoundPlayer openSLESSoundPlayer;
+    private Button audioTrackPlayBtn;
+    private Button audioTrackStopBtn;
+    private Button openSLESPlayBtn;
+    private Button openSLESStopBtn;
+    /**
+     * 要播放的文件路径
+     **/
+    private static String playFilePath = "/mnt/sdcard/tonghuazhen.mp3";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        findViewById(R.id.button1).setOnClickListener(this);
+        openSLESSoundPlayer = new OpenSLESSoundPlayer();
+        Log.d(this.getClass().getSimpleName(), OpenSLESSoundPlayer.getStringFromJNI("Hello!"));
+        findAndBindView();
     }
 
-    private static int SAMPLE_RATE = 44100;
-    private static String PCM_FILE = "tonghuazhen_part.pcm";
 
+    private void findAndBindView() {
+        audioTrackPlayBtn = (Button) findViewById(R.id.play_audiotrack_btn);
+        audioTrackStopBtn = (Button) findViewById(R.id.stop_audiotrack_btn);
+        openSLESPlayBtn = (Button) findViewById(R.id.play_opensl_es_btn);
+        openSLESStopBtn = (Button) findViewById(R.id.stop_opensl_es_btn);
 
-    private void playPCMWithAudioTrack(String pcmFilePath) {
+        audioTrackPlayBtn.setOnClickListener(this);
+        audioTrackStopBtn.setOnClickListener(this);
+        openSLESPlayBtn.setOnClickListener(this);
+        openSLESStopBtn.setOnClickListener(this);
+    }
 
-
-        //获取最小缓冲区大小
-        int minBufferSize = AudioTrack.getMinBufferSize(SAMPLE_RATE,    //采样率
-                AudioFormat.CHANNEL_OUT_STEREO, //双声道
-                AudioFormat.ENCODING_PCM_16BIT  //采样格式
-        );
-
-        //初始化AudioTrack对象
-        AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,   //媒体类型
-                SAMPLE_RATE,  //采样率
-                AudioFormat.CHANNEL_IN_STEREO, //双声道
-                AudioFormat.ENCODING_PCM_16BIT, //采样格式
-                minBufferSize,  //缓冲区大小
-                AudioTrack.MODE_STREAM  //流式加载
-        );
-
-        //先启动播放
-        audioTrack.play();
-
-        //从文件读取PCM数据
-        InputStream is = null;
-        DataInputStream dis = null;
-        try {
-            byte[] buffer = new byte[minBufferSize * 3];
-            is = getAssets().open(pcmFilePath);
-            dis = new DataInputStream(is);
-            int readCount = 0;
-            while (dis.available() > 0) {
-                readCount = dis.read(buffer);
-
-                Log.d(MainActivity.class.getSimpleName(), "readCount=" + readCount);
-                if (readCount == AudioTrack.ERROR_INVALID_OPERATION || readCount == AudioTrack.ERROR_BAD_VALUE) {
-                    continue;
-                }
-                if (readCount != 0 && readCount != -1) {
-                    audioTrack.write(buffer, 0, readCount);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            audioTrack.stop();
-            audioTrack.release();
-            try {
-                if (is != null)
-                    is.close();
-                if (dis != null) {
-                    dis.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        switch (keyCode){
+            case KeyEvent.KEYCODE_DPAD_UP:
+                openslStart();
+                break;
+            case KeyEvent.KEYCODE_DPAD_DOWN:
+                openslStop();
+                break;
         }
-
+        return super.onKeyUp(keyCode, event);
     }
 
     @Override
     public void onClick(View v) {
-        if (v.getId() == R.id.button1) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    playPCMWithAudioTrack(PCM_FILE);
+        switch (v.getId()){
+        /*    case R.id.play_audiotrack_btn:
+                Log.i(TAG, "Click AudioTrack Play Btn");
+                openSLESSoundPlayer = new NativeMp3PlayerController();
+                openSLESSoundPlayer.setHandler(handler);
+                openSLESSoundPlayer.setAudioDataSource(playFilePath);
+                openSLESSoundPlayer.start();
+                break;
+            case R.id.stop_audiotrack_btn:
+                Log.i(TAG, "Click AudioTrack Stop Btn");
+                // 普通AudioTrack的停止播放
+                if (null != openSLESSoundPlayer) {
+                    openSLESSoundPlayer.stop();
+                    openSLESSoundPlayer = null;
                 }
-            }).start();
+                break;*/
+            case R.id.play_opensl_es_btn:
+                openslStart();
+                break;
+            case R.id.stop_opensl_es_btn:
+                openslStop();
+                break;
+
         }
     }
+
+    private void openslStop() {
+        Log.i(TAG, "Click OpenSL ES Stop Btn");
+        if (null != openSLESSoundPlayer) {
+            openSLESSoundPlayer.stop();
+            openSLESSoundPlayer = null;
+        }
+    }
+
+    private void openslStart() {
+        Log.i(TAG, "Click OpenSL ES Play Btn");
+        // OpenSL EL初始化播放器
+        if (openSLESSoundPlayer!=null) {
+            openSLESSoundPlayer.setAudioDataSource(playFilePath, 0.2f);
+            // OpenSL EL进行播放
+            openSLESSoundPlayer.play();
+        }
+    }
+
+
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            // 计算当前时间
+            int _time = Math.max(msg.arg1, 0) / 1000;
+            int total_time = Math.max(msg.arg2, 0) / 1000;
+            float ratio = (float) _time / (float) total_time;
+            Log.i(TAG, "Play Progress : " + ratio);
+        }
+    };
+
 }

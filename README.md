@@ -1,0 +1,2 @@
+# AudioTrack-OpenSL
+AudioTrack分支是使用AudioTrack播放PCM文件的DEMO

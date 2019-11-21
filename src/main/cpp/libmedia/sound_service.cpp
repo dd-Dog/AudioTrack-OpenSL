@@ -1,21 +1,35 @@
 #include "sound_service.h"
 #define LOG_TAG "SoundService"
 
+/**
+ * 构造函数
+ * 初始化状态为PLAYING_STATE_STOPPED
+ */
 SoundService::SoundService() {
 	LOGI("SoundService::SoundService()");
 	playingState = PLAYING_STATE_STOPPED;
 }
 
+/**
+ * 析构函数
+ */
 SoundService::~SoundService() {
 	LOGI("SoundService::~SoundService()");
 }
 
+//饿汉单例模式
 SoundService* SoundService::instance = new SoundService();
 
+//饿汉单例函数
 SoundService* SoundService::GetInstance() {
 	return instance;
 }
 
+/**
+ * 设置播放完成的回调
+ * @param g_jvm_param java虚拟机
+ * @param objParam
+ */
 void SoundService::setOnCompletionCallback(JavaVM *g_jvm_param, jobject objParam) {
 	g_jvm = g_jvm_param;
 	obj = objParam;
@@ -37,17 +51,21 @@ void SoundService::producePacket() {
 		LOGI("before DestroyContext");
 		//		DestroyContext();
 		LOGI("after DestroyContext");
+
 		JNIEnv *env;
-		//Attach主线程
+		//Attach主线程(当前线程),返回一个属于当前线程的JNIEnv指针
 		if (g_jvm->AttachCurrentThread(&env, NULL) != JNI_OK) {
 			LOGE("%s: AttachCurrentThread() failed", __FUNCTION__);
 		}
+
+		//JNI调用Java层 onCompletion()方法
 		jclass jcls = env->GetObjectClass(obj);
 		jmethodID onCompletionCallBack = env->GetMethodID(jcls, "onCompletion", "()V");
 		LOGI("before env->CallVoidMethod");
 		env->CallVoidMethod(obj, onCompletionCallBack);
 		LOGI("after env->CallVoidMethod");
-		//Detach主线程
+
+		//Detach主线程，否则线程无法正常退出
 		if (g_jvm->DetachCurrentThread() != JNI_OK) {
 			LOGE("%s: DetachCurrentThread() failed", __FUNCTION__);
 		}
@@ -66,7 +84,7 @@ SLresult SoundService::RegisterSlientPlayerCallback() {
 }
 
 SLresult SoundService::stop() {
-	LOGI("enter SoundService::stop()");
+	LOGI("enter SoundService::Stop()");
 
 	playingState = PLAYING_STATE_STOPPED;
 	LOGI("Set the audio player state paused");
@@ -84,11 +102,11 @@ SLresult SoundService::stop() {
 	}
 	DestroyContext();
 
-	LOGI("out SoundService::stop()");
+	LOGI("out SoundService::Stop()");
 }
 
 SLresult SoundService::play() {
-	LOGI("enter SoundService::play()...");
+	LOGI("enter SoundService::Play()...");
 
 	// Set the audio player state playing
 	LOGI("Set the audio player state playing");
@@ -101,11 +119,11 @@ SLresult SoundService::play() {
 	if (SL_RESULT_SUCCESS != result) {
 		return result;
 	}
-	LOGI(" Enqueue the first buffer to start");
+	LOGI(" Enqueue the first readPCMBuffer to start");
 
 	playingState = PLAYING_STATE_PLAYING;
 
-	// Enqueue buffer to start
+	// Enqueue readPCMBuffer to start
 	for (int i = 0; i < bufferNums; i++) {
 		int result = -1;
 		if (NULL != decoderController) {
@@ -118,7 +136,8 @@ SLresult SoundService::play() {
 		}
 	}
 
-	LOGI("out SoundService::play()...");
+	LOGI("out SoundService::Play()...");
+	return result;
 }
 
 /**
@@ -175,12 +194,12 @@ SLresult SoundService::initSoundTrack() {
 		return result;
 	}
 
-	LOGI("Initialize buffer");
-	// Initialize buffer
+	LOGI("Initialize readPCMBuffer");
+	// Initialize readPCMBuffer
 	InitPlayerBuffer();
 
-	LOGI("Create the buffer queue audio player object");
-	// Create the buffer queue audio player object
+	LOGI("Create the readPCMBuffer queue audio player object");
+	// Create the readPCMBuffer queue audio player object
 	result = CreateBufferQueueAudioPlayer();
 	if (SL_RESULT_SUCCESS != result) {
 		return result;
@@ -201,8 +220,8 @@ SLresult SoundService::initSoundTrack() {
 		return result;
 	}
 
-	LOGI("Get audio player buffer queue interface");
-	// Get audio player buffer queue interface
+	LOGI("Get audio player readPCMBuffer queue interface");
+	// Get audio player readPCMBuffer queue interface
 	result = GetAudioPlayerBufferQueueInterface();
 	if (SL_RESULT_SUCCESS != result) {
 		return result;
@@ -223,8 +242,8 @@ SLresult SoundService::initSoundTrack() {
 		return result;
 	}
 
-	LOGI("Get audio player play interface");
-	// Get audio player play interface
+	LOGI("Get audio player Play interface");
+	// Get audio player Play interface
 	result = GetAudioPlayerPlayInterface();
 	if (SL_RESULT_SUCCESS != result) {
 		return result;
@@ -237,19 +256,25 @@ SLresult SoundService::initSoundTrack() {
 	return SL_RESULT_SUCCESS;
 }
 
+/**
+ * 获取当前播放时间戳
+ */
 int SoundService::getCurrentTimeMills() {
 	SLmillisecond position = 0;
-//	LOGI("enter SoundService::getCurrentTimeMills");
+	LOGI("enter SoundService::getCurrentTimeMills");
 	if (playingState == PLAYING_STATE_PLAYING) {
+		//播放中
 		if (0 != audioPlayerObject && NULL != (*audioPlayerPlay)) {
 			SLresult result = (*audioPlayerPlay)->GetPosition(audioPlayerPlay, &position);
 		}
 		position += seekBaseMillsTime;
-		//LOGI("enter SoundService::getCurrentTimeMills playing position=%d", (int)position);
+		LOGI("enter SoundService::getCurrentTimeMills playing position=%d", (int)position);
 	} else {
+		//停止状态，返回lastCurrentTimeMills
 		position = lastCurrentTimeMills;
-		//LOGI("enter SoundService::getCurrentTimeMills stoped position=%d", (int)position);
+		LOGI("enter SoundService::getCurrentTimeMills stoped position=%d", (int)position);
 	}
+	//更新lastCurrentTimeMills
 	lastCurrentTimeMills = position;
 	return (int)position;
 }
@@ -257,6 +282,11 @@ int SoundService::getCurrentTimeMills() {
 bool SoundService::isPlaying() {
 	return playingState != PLAYING_STATE_STOPPED;
 }
+
+/**
+ * 设置音量，由解码器控制
+ * @param volume
+ */
 void SoundService::setVolume(float volume) {
 	if (NULL != decoderController) {
 		decoderController->setVolume(volume, 1.0f);
@@ -270,7 +300,7 @@ void SoundService::DestroyContext() {
 	DestroyObject(audioPlayerObject);
 	DestroyObject(slientAudioPlayerObject);
 	LOGI("after destroy audioPlayerObject");
-	// Free the player buffer
+	// Free the player readPCMBuffer
 	FreePlayerBuffer();
 	LOGI("after FreePlayerBuffer");
 	// Destroy output mix object

@@ -29,11 +29,11 @@ typedef struct AudioPacket {
 	~AudioPacket() {
 //		__android_log_print(ANDROID_LOG_ERROR, "~AudioPacket", "delete AudioPacket");
 		if (NULL != buffer) {
-//			__android_log_print(ANDROID_LOG_ERROR, "~AudioPacket", "buffer's addr is %x", buffer);
-//			__android_log_print(ANDROID_LOG_ERROR, "~AudioPacket", "delete buffer ...");
+//			__android_log_print(ANDROID_LOG_ERROR, "~AudioPacket", "readPCMBuffer's addr is %x", readPCMBuffer);
+//			__android_log_print(ANDROID_LOG_ERROR, "~AudioPacket", "delete readPCMBuffer ...");
 			delete[] buffer;
 			buffer = NULL;
-//			__android_log_print(ANDROID_LOG_ERROR, "~AudioPacket", "delete buffer success");
+//			__android_log_print(ANDROID_LOG_ERROR, "~AudioPacket", "delete readPCMBuffer success");
 		}
 //		__android_log_print(ANDROID_LOG_ERROR, "~AudioPacket", "delete AudioPacket success");
 	}

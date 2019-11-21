@@ -123,7 +123,8 @@ inline SInt16 adjustAudioVolume(SInt16 source, float volume) {
 	return result;
 }
 
-//将一个short数组转换为一个byte数组---清唱时由于不需要和伴奏合成，所以直接转换;还有一个是当解码完成之后，需要将short变为byte数组，写入文件
+//将一个short数组转换为一个byte数组---清唱时由于不需要和伴奏合成，所以直接转换;
+// 还有一个是当解码完成之后，需要将short变为byte数组，写入文件
 inline void convertByteArrayFromShortArray(SInt16 *shortarray, int size, byte *bytearray) {
 	byte* tmpbytearray = new byte[2];
 	for (int i = 0; i < size; i++) {
@@ -192,7 +193,7 @@ inline void mixtureAccompanyAudio(SInt16 *accompanyData, SInt16 *audioData, int 
 }
 
 
-inline char *strstr(char *s1, char *s2) {
+inline char *strstr2(char *s1, char *s2) {
 	unsigned int i = 0;
 	if (*s1 == 0) // 如果字符串s1为空
 			{
@@ -219,7 +220,7 @@ inline char *strstr(char *s1, char *s2) {
 
 inline int strindex(char *s1, char *s2) {
 	int nPos = -1;
-	char *res = strstr(s1, s2);
+	char *res = strstr2(s1, s2);
 	if (res)
 		nPos = res - s1;
 	return nPos;

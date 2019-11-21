@@ -164,7 +164,7 @@ static const char * opensl_get_error_string(SLresult result) {
 	case SL_RESULT_IO_ERROR:
 		return "IO error";
 	case SL_RESULT_BUFFER_INSUFFICIENT:
-		return "Insufficient buffer";
+		return "Insufficient readPCMBuffer";
 	case SL_RESULT_CONTENT_CORRUPTED:
 		return "Content corrupted";
 	case SL_RESULT_CONTENT_UNSUPPORTED:

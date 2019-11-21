@@ -33,7 +33,7 @@ JNIEXPORT jint JNICALL Java_com_flyscale_chapter_14_OpenSLESSoundPlayer_getAccom
 
 /*
  * Class:     com_flyscale_chapter_4_OpenSLESSoundPlayer
- * Method:    play
+ * Method:    Play
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_com_flyscale_chapter_14_OpenSLESSoundPlayer_play
@@ -49,7 +49,7 @@ JNIEXPORT jint JNICALL Java_com_flyscale_chapter_14_OpenSLESSoundPlayer_getCurre
 
 /*
  * Class:     com_flyscale_chapter_4_OpenSLESSoundPlayer
- * Method:    stop
+ * Method:    Stop
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_com_flyscale_chapter_14_OpenSLESSoundPlayer_stop

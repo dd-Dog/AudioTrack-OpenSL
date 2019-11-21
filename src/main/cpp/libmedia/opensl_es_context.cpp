@@ -26,6 +26,9 @@ OpenSLESContext::OpenSLESContext() {
 OpenSLESContext::~OpenSLESContext() {
 }
 
+/**
+ * 懒汉单例模式
+ */
 OpenSLESContext* OpenSLESContext::GetInstance() {
 	if (!instance->isInited) {
 		instance->init();

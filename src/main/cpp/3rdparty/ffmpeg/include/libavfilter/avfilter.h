@@ -68,12 +68,12 @@ typedef struct AVFilterFormats AVFilterFormats;
 
 #if FF_API_AVFILTERBUFFER
 /**
- * A reference-counted buffer data type used by the filter system. Filters
+ * A reference-counted readPCMBuffer data type used by the filter system. Filters
  * should not store pointers to this structure directly, but instead use the
  * AVFilterBufferRef structure below.
  */
 typedef struct AVFilterBuffer {
-    uint8_t *data[8];           ///< buffer data for each plane/channel
+    uint8_t *data[8];           ///< readPCMBuffer data for each plane/channel
 
     /**
      * pointers to the data planes/channels.
@@ -81,9 +81,9 @@ typedef struct AVFilterBuffer {
      * For video, this should simply point to data[].
      *
      * For planar audio, each channel has a separate data pointer, and
-     * linesize[0] contains the size of each channel buffer.
+     * linesize[0] contains the size of each channel readPCMBuffer.
      * For packed audio, there is just one data pointer, and linesize[0]
-     * contains the total size of the buffer for all channels.
+     * contains the total size of the readPCMBuffer for all channels.
      *
      * Note: Both data and extended_data will always be set, but for planar
      * audio with more channels that can fit in data, extended_data must be used
@@ -95,7 +95,7 @@ typedef struct AVFilterBuffer {
     /** private data to be used by a custom free function */
     void *priv;
     /**
-     * A pointer to the function to deallocate this buffer if the default
+     * A pointer to the function to deallocate this readPCMBuffer if the default
      * function is not sufficient. This could, for example, add the memory
      * back into a memory pool to be reused later without the overhead of
      * reallocating it from scratch.
@@ -103,17 +103,17 @@ typedef struct AVFilterBuffer {
     void (*free)(struct AVFilterBuffer *buf);
 
     int format;                 ///< media format
-    int w, h;                   ///< width and height of the allocated buffer
-    unsigned refcount;          ///< number of references to this buffer
+    int w, h;                   ///< width and height of the allocated readPCMBuffer
+    unsigned refcount;          ///< number of references to this readPCMBuffer
 } AVFilterBuffer;
 
-#define AV_PERM_READ     0x01   ///< can read from the buffer
-#define AV_PERM_WRITE    0x02   ///< can write to the buffer
-#define AV_PERM_PRESERVE 0x04   ///< nobody else can overwrite the buffer
-#define AV_PERM_REUSE    0x08   ///< can output the buffer multiple times, with the same contents each time
-#define AV_PERM_REUSE2   0x10   ///< can output the buffer multiple times, modified each time
-#define AV_PERM_NEG_LINESIZES 0x20  ///< the buffer requested can have negative linesizes
-#define AV_PERM_ALIGN    0x40   ///< the buffer must be aligned
+#define AV_PERM_READ     0x01   ///< can read from the readPCMBuffer
+#define AV_PERM_WRITE    0x02   ///< can write to the readPCMBuffer
+#define AV_PERM_PRESERVE 0x04   ///< nobody else can overwrite the readPCMBuffer
+#define AV_PERM_REUSE    0x08   ///< can output the readPCMBuffer multiple times, with the same contents each time
+#define AV_PERM_REUSE2   0x10   ///< can output the readPCMBuffer multiple times, modified each time
+#define AV_PERM_NEG_LINESIZES 0x20  ///< the readPCMBuffer requested can have negative linesizes
+#define AV_PERM_ALIGN    0x40   ///< the readPCMBuffer must be aligned
 
 #define AVFILTER_ALIGN 16 //not part of ABI
 
@@ -123,9 +123,9 @@ typedef struct AVFilterBuffer {
  * per reference properties must be separated out.
  */
 typedef struct AVFilterBufferRefAudioProps {
-    uint64_t channel_layout;    ///< channel layout of audio buffer
+    uint64_t channel_layout;    ///< channel layout of audio readPCMBuffer
     int nb_samples;             ///< number of audio samples per channel
-    int sample_rate;            ///< audio buffer sample rate
+    int sample_rate;            ///< audio readPCMBuffer sample rate
     int channels;               ///< number of channels (do not access directly)
 } AVFilterBufferRefAudioProps;
 
@@ -149,14 +149,14 @@ typedef struct AVFilterBufferRefVideoProps {
 
 /**
  * A reference to an AVFilterBuffer. Since filters can manipulate the origin of
- * a buffer to, for example, crop image without any memcpy, the buffer origin
+ * a readPCMBuffer to, for example, crop image without any memcpy, the readPCMBuffer origin
  * and dimensions are per-reference properties. Linesize is also useful for
  * image flipping, frame to field filters, etc, and so is also per-reference.
  *
  * TODO: add anything necessary for frame reordering
  */
 typedef struct AVFilterBufferRef {
-    AVFilterBuffer *buf;        ///< the buffer that this is a reference to
+    AVFilterBuffer *buf;        ///< the readPCMBuffer that this is a reference to
     uint8_t *data[8];           ///< picture/audio data for each plane
     /**
      * pointers to the data planes/channels.
@@ -164,9 +164,9 @@ typedef struct AVFilterBufferRef {
      * For video, this should simply point to data[].
      *
      * For planar audio, each channel has a separate data pointer, and
-     * linesize[0] contains the size of each channel buffer.
+     * linesize[0] contains the size of each channel readPCMBuffer.
      * For packed audio, there is just one data pointer, and linesize[0]
-     * contains the total size of the buffer for all channels.
+     * contains the total size of the readPCMBuffer for all channels.
      *
      * Note: Both data and extended_data will always be set, but for planar
      * audio with more channels that can fit in data, extended_data must be used
@@ -175,8 +175,8 @@ typedef struct AVFilterBufferRef {
     uint8_t **extended_data;
     int linesize[8];            ///< number of bytes per line
 
-    AVFilterBufferRefVideoProps *video; ///< video buffer specific properties
-    AVFilterBufferRefAudioProps *audio; ///< audio buffer specific properties
+    AVFilterBufferRefVideoProps *video; ///< video readPCMBuffer specific properties
+    AVFilterBufferRefAudioProps *audio; ///< audio readPCMBuffer specific properties
 
     /**
      * presentation timestamp. The time unit may change during
@@ -190,7 +190,7 @@ typedef struct AVFilterBufferRef {
 
     int perms;                  ///< permissions, see the AV_PERM_* flags
 
-    enum AVMediaType type;      ///< media type of buffer data
+    enum AVMediaType type;      ///< media type of readPCMBuffer data
 
     AVDictionary *metadata;     ///< dictionary containing metadata key=value tags
 } AVFilterBufferRef;
@@ -202,22 +202,22 @@ attribute_deprecated
 void avfilter_copy_buffer_ref_props(AVFilterBufferRef *dst, AVFilterBufferRef *src);
 
 /**
- * Add a new reference to a buffer.
+ * Add a new reference to a readPCMBuffer.
  *
- * @param ref   an existing reference to the buffer
+ * @param ref   an existing reference to the readPCMBuffer
  * @param pmask a bitmask containing the allowable permissions in the new
  *              reference
- * @return      a new reference to the buffer with the same properties as the
+ * @return      a new reference to the readPCMBuffer with the same properties as the
  *              old, excluding any permissions denied by pmask
  */
 attribute_deprecated
 AVFilterBufferRef *avfilter_ref_buffer(AVFilterBufferRef *ref, int pmask);
 
 /**
- * Remove a reference to a buffer. If this is the last reference to the
- * buffer, the buffer itself is also automatically freed.
+ * Remove a reference to a readPCMBuffer. If this is the last reference to the
+ * readPCMBuffer, the readPCMBuffer itself is also automatically freed.
  *
- * @param ref reference to the buffer, may be NULL
+ * @param ref reference to the readPCMBuffer, may be NULL
  *
  * @note it is recommended to use avfilter_unref_bufferp() instead of this
  * function
@@ -226,11 +226,11 @@ attribute_deprecated
 void avfilter_unref_buffer(AVFilterBufferRef *ref);
 
 /**
- * Remove a reference to a buffer and set the pointer to NULL.
- * If this is the last reference to the buffer, the buffer itself
+ * Remove a reference to a readPCMBuffer and set the pointer to NULL.
+ * If this is the last reference to the readPCMBuffer, the readPCMBuffer itself
  * is also automatically freed.
  *
- * @param ref pointer to the buffer reference
+ * @param ref pointer to the readPCMBuffer reference
  */
 attribute_deprecated
 void avfilter_unref_bufferp(AVFilterBufferRef **ref);
@@ -268,28 +268,28 @@ struct AVFilterPad {
 
     /**
      * Input pads:
-     * Minimum required permissions on incoming buffers. Any buffer with
+     * Minimum required permissions on incoming buffers. Any readPCMBuffer with
      * insufficient permissions will be automatically copied by the filter
-     * system to a new buffer which provides the needed access permissions.
+     * system to a new readPCMBuffer which provides the needed access permissions.
      *
      * Output pads:
-     * Guaranteed permissions on outgoing buffers. Any buffer pushed on the
+     * Guaranteed permissions on outgoing buffers. Any readPCMBuffer pushed on the
      * link must have at least these permissions; this fact is checked by
-     * asserts. It can be used to optimize buffer allocation.
+     * asserts. It can be used to optimize readPCMBuffer allocation.
      */
     attribute_deprecated int min_perms;
 
     /**
      * Input pads:
-     * Permissions which are not accepted on incoming buffers. Any buffer
+     * Permissions which are not accepted on incoming buffers. Any readPCMBuffer
      * which has any of these permissions set will be automatically copied
-     * by the filter system to a new buffer which does not have those
+     * by the filter system to a new readPCMBuffer which does not have those
      * permissions. This can be used to easily disallow buffers with
      * AV_PERM_REUSE.
      *
      * Output pads:
      * Permissions which are automatically removed on outgoing buffers. It
-     * can be used to optimize buffer allocation.
+     * can be used to optimize readPCMBuffer allocation.
      */
     attribute_deprecated int rej_perms;
 
@@ -299,7 +299,7 @@ struct AVFilterPad {
     int (*start_frame)(AVFilterLink *link, AVFilterBufferRef *picref);
 
     /**
-     * Callback function to get a video buffer. If NULL, the filter system will
+     * Callback function to get a video readPCMBuffer. If NULL, the filter system will
      * use ff_default_get_video_buffer().
      *
      * Input video pads only.
@@ -307,7 +307,7 @@ struct AVFilterPad {
     AVFrame *(*get_video_buffer)(AVFilterLink *link, int w, int h);
 
     /**
-     * Callback function to get an audio buffer. If NULL, the filter system will
+     * Callback function to get an audio readPCMBuffer. If NULL, the filter system will
      * use ff_default_get_audio_buffer().
      *
      * Input audio pads only.
@@ -893,8 +893,8 @@ int avfilter_config_links(AVFilterContext *filter);
 
 #if FF_API_AVFILTERBUFFER
 /**
- * Create a buffer reference wrapped around an already allocated image
- * buffer.
+ * Create a readPCMBuffer reference wrapped around an already allocated image
+ * readPCMBuffer.
  *
  * @param data pointers to the planes of the image to reference
  * @param linesize linesizes for the planes of the image to reference
@@ -909,8 +909,8 @@ avfilter_get_video_buffer_ref_from_arrays(uint8_t * const data[4], const int lin
                                           int w, int h, enum AVPixelFormat format);
 
 /**
- * Create an audio buffer reference wrapped around an already
- * allocated samples buffer.
+ * Create an audio readPCMBuffer reference wrapped around an already
+ * allocated samples readPCMBuffer.
  *
  * See avfilter_get_audio_buffer_ref_from_arrays_channels() for a version
  * that can handle unknown channel layouts.
@@ -919,8 +919,8 @@ avfilter_get_video_buffer_ref_from_arrays(uint8_t * const data[4], const int lin
  * @param linesize       linesize for the samples plane buffers
  * @param perms          the required access permissions
  * @param nb_samples     number of samples per channel
- * @param sample_fmt     the format of each sample in the buffer to allocate
- * @param channel_layout the channel layout of the buffer
+ * @param sample_fmt     the format of each sample in the readPCMBuffer to allocate
+ * @param channel_layout the channel layout of the readPCMBuffer
  */
 attribute_deprecated
 AVFilterBufferRef *avfilter_get_audio_buffer_ref_from_arrays(uint8_t **data,
@@ -930,16 +930,16 @@ AVFilterBufferRef *avfilter_get_audio_buffer_ref_from_arrays(uint8_t **data,
                                                              enum AVSampleFormat sample_fmt,
                                                              uint64_t channel_layout);
 /**
- * Create an audio buffer reference wrapped around an already
- * allocated samples buffer.
+ * Create an audio readPCMBuffer reference wrapped around an already
+ * allocated samples readPCMBuffer.
  *
  * @param data           pointers to the samples plane buffers
  * @param linesize       linesize for the samples plane buffers
  * @param perms          the required access permissions
  * @param nb_samples     number of samples per channel
- * @param sample_fmt     the format of each sample in the buffer to allocate
- * @param channels       the number of channels of the buffer
- * @param channel_layout the channel layout of the buffer,
+ * @param sample_fmt     the format of each sample in the readPCMBuffer to allocate
+ * @param channels       the number of channels of the readPCMBuffer
+ * @param channel_layout the channel layout of the readPCMBuffer,
  *                       must be either 0 or consistent with channels
  */
 attribute_deprecated

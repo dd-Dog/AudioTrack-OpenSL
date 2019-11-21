@@ -6,6 +6,7 @@
 #include "opensl_es_util.h"
 #include "opensl_es_context.h"
 
+//定义播放器状态
 #define PLAYING_STATE_STOPPED (0x00000001)
 #define PLAYING_STATE_PLAYING (0x00000002)
 
@@ -14,7 +15,8 @@ private:
     SoundService(); //注意:构造方法私有
     static SoundService *instance; //惟一实例
 
-    int playingState;
+    int playingState;   //当前播放器状态
+
     //播放完成回调的时候需要用到的参数
     JavaVM *g_jvm;
     jobject obj;
@@ -24,11 +26,13 @@ private:
     //伴奏的采样频率
     int accompanySampleRate;
 
-    SLEngineItf engineEngine;
-    SLObjectItf outputMixObject;
-    SLObjectItf audioPlayerObject;
+    SLEngineItf engineEngine;   //引擎接口对象
+    SLObjectItf outputMixObject;    //混音器接口对象
+
+    SLObjectItf audioPlayerObject;  //播放器接口对象
+    SLPlayItf audioPlayerPlay;  //具体的播放器对象实例
+
     SLAndroidSimpleBufferQueueItf audioPlayerBufferQueue;
-    SLPlayItf audioPlayerPlay;
 
     SLObjectItf slientAudioPlayerObject;
     SLAndroidSimpleBufferQueueItf slientAudioPlayerBufferQueue;
@@ -69,6 +73,7 @@ private:
 
     /**
      * Creates and output mix object.
+     * 创建输出混音对象outputMixObject
      */
     SLresult CreateOutputMix() {
         // Create output mix object
@@ -102,7 +107,7 @@ private:
      * @param bufferSize buffer size. [OUT]
      */
     void InitPlayerBuffer() {
-        //Initialize buffer
+        //Initialize readPCMBuffer
         buffer = new unsigned char[bufferSize];
         target = new short[bufferSize / 2];
 
@@ -115,10 +120,10 @@ private:
      * Creates buffer queue audio player.
      */
     SLresult CreateBufferQueueAudioPlayer() {
-        // Android simple buffer queue locator for the data source
+        // Android simple readPCMBuffer queue locator for the data source
         SLDataLocator_AndroidSimpleBufferQueue dataSourceLocator = {
                 SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, // locator type
-                1 // buffer count
+                1 // readPCMBuffer count
         };
 
         //PCM data source format
@@ -131,18 +136,19 @@ private:
 //				SL_BYTEORDER_LITTLEENDIAN // endianness
 //				};
 
+        //PCM数据源格式
         int samplesPerSec = opensl_get_sample_rate(accompanySampleRate);
         SLDataFormat_PCM dataSourceFormat = {SL_DATAFORMAT_PCM, // format type
                                              2, // channel count
                                              static_cast<SLuint32>(samplesPerSec), // samples per second in millihertz
-                                             SL_PCMSAMPLEFORMAT_FIXED_16, // bits per sample
+                                             SL_PCMSAMPLEFORMAT_FIXED_16, // bits per sample，采样位宽
                                              SL_PCMSAMPLEFORMAT_FIXED_16, // container size
                                              SL_SPEAKER_FRONT_LEFT |
-                                             SL_SPEAKER_FRONT_RIGHT, // channel mask
-                                             SL_BYTEORDER_LITTLEENDIAN // endianness
+                                             SL_SPEAKER_FRONT_RIGHT, // channel mask(通道掩码，左右双通道)
+                                             SL_BYTEORDER_LITTLEENDIAN // endianness(字节序：小端)
         };
 
-        // Data source is a simple buffer queue with PCM format
+        // Data source is a simple readPCMBuffer queue with PCM format
         SLDataSource dataSource = {&dataSourceLocator, // data locator
                                    &dataSourceFormat // data format
         };
@@ -172,10 +178,10 @@ private:
     };
 
     SLresult CreateBufferQueueSlientAudioPlayer() {
-        // Android simple buffer queue locator for the data source
+        // Android simple readPCMBuffer queue locator for the data source
         SLDataLocator_AndroidSimpleBufferQueue dataSourceLocator = {
                 SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, // locator type
-                1 // buffer count
+                1 // readPCMBuffer count
         };
 
         //PCM data source format
@@ -199,7 +205,7 @@ private:
                                              SL_BYTEORDER_LITTLEENDIAN // endianness
         };
 
-        // Data source is a simple buffer queue with PCM format
+        // Data source is a simple readPCMBuffer queue with PCM format
         SLDataSource dataSource = {&dataSourceLocator, // data locator
                                    &dataSourceFormat // data format
         };
@@ -232,13 +238,13 @@ private:
      * Gets the audio player buffer queue interface.
      */
     SLresult GetAudioPlayerBufferQueueInterface() {
-        // Get the buffer queue interface
+        // Get the readPCMBuffer queue interface
         return (*audioPlayerObject)->GetInterface(audioPlayerObject, SL_IID_BUFFERQUEUE,
                                                   &audioPlayerBufferQueue);
     };
 
     SLresult GetSlientAudioPlayerBufferQueueInterface() {
-        // Get the buffer queue interface
+        // Get the readPCMBuffer queue interface
         return (*slientAudioPlayerObject)->GetInterface(slientAudioPlayerObject, SL_IID_BUFFERQUEUE,
                                                         &slientAudioPlayerBufferQueue);
     };
@@ -262,12 +268,12 @@ private:
      * Gets the audio player play interface.
      */
     SLresult GetAudioPlayerPlayInterface() {
-        // Get the play interface
+        // Get the Play interface
         return (*audioPlayerObject)->GetInterface(audioPlayerObject, SL_IID_PLAY, &audioPlayerPlay);
     };
 
     SLresult GetSlientAudioPlayerPlayInterface() {
-        // Get the play interface
+        // Get the Play interface
         return (*slientAudioPlayerObject)->GetInterface(slientAudioPlayerObject, SL_IID_PLAY,
                                                         &slientAudioPlayerPlay);
     };

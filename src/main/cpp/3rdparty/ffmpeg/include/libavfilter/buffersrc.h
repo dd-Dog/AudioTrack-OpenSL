@@ -79,9 +79,9 @@ unsigned av_buffersrc_get_nb_failed_requests(AVFilterContext *buffer_src);
 
 #if FF_API_AVFILTERBUFFER
 /**
- * Add a buffer to the filtergraph s.
+ * Add a readPCMBuffer to the filtergraph s.
  *
- * @param buf buffer containing frame data to be passed down the filtergraph.
+ * @param buf readPCMBuffer containing frame data to be passed down the filtergraph.
  * This function will take ownership of buf, the user must not free it.
  * A NULL buf signals EOF -- i.e. no more frames will be sent to this filter.
  *

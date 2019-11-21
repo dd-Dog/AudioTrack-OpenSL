@@ -150,7 +150,7 @@ bool AccompanyDecoder::audioCodecIsSupported() {
 AudioPacket* AccompanyDecoder::decodePacket(){
 //	LOGI("MadDecoder::decodePacket packetBufferSize is %d", packetBufferSize);
 	short* samples = new short[packetBufferSize];
-//	LOGI("accompanyPacket buffer's addr is %x", samples);
+//	LOGI("accompanyPacket readPCMBuffer's addr is %x", samples);
 	int stereoSampleSize = readSamples(samples, packetBufferSize);
 	AudioPacket* samplePacket = new AudioPacket();
 	if (stereoSampleSize > 0) {
@@ -304,7 +304,7 @@ int AccompanyDecoder::readFrame() {
 }
 
 void AccompanyDecoder::destroy() {
-//	LOGI("start destroy!!!");
+	LOGI("start destroy!!!");
 	if (NULL != swrBuffer) {
 		free(swrBuffer);
 		swrBuffer = NULL;
@@ -327,5 +327,5 @@ void AccompanyDecoder::destroy() {
 		avformat_close_input(&avFormatContext);
 		avFormatContext = NULL;
 	}
-//	LOGI("end destroy!!!");
+	LOGI("end destroy!!!");
 }

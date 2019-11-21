@@ -6,8 +6,8 @@
 
 class OpenSLESContext {
 private:
-	SLObjectItf engineObject;
-	SLEngineItf engineEngine;
+	SLObjectItf engineObject;	//引擎对象是API的唯一入口
+	SLEngineItf engineEngine;	//引擎对象的接口
 	bool isInited;
 	/**
 	 * Creates an OpenSL ES engine.
@@ -35,6 +35,7 @@ private:
 	/**
 	 * Gets the engine interface from the given engine object
 	 * in order to create other objects from the engine.
+	 * 接口类型:SL_IID_ENGINE
 	 */
 	SLresult GetEngineInterface() {
 		// Get the engine interface

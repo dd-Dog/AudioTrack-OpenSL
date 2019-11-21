@@ -35,7 +35,7 @@
  * Create and return a picref reference from the data and properties
  * contained in frame.
  *
- * @param perms permissions to assign to the new buffer reference
+ * @param perms permissions to assign to the new readPCMBuffer reference
  * @deprecated avfilter APIs work natively with AVFrame instead.
  */
 attribute_deprecated
@@ -46,7 +46,7 @@ AVFilterBufferRef *avfilter_get_video_buffer_ref_from_frame(const AVFrame *frame
  * Create and return a picref reference from the data and properties
  * contained in frame.
  *
- * @param perms permissions to assign to the new buffer reference
+ * @param perms permissions to assign to the new readPCMBuffer reference
  * @deprecated avfilter APIs work natively with AVFrame instead.
  */
 attribute_deprecated
@@ -54,10 +54,10 @@ AVFilterBufferRef *avfilter_get_audio_buffer_ref_from_frame(const AVFrame *frame
                                                             int perms);
 
 /**
- * Create and return a buffer reference from the data and properties
+ * Create and return a readPCMBuffer reference from the data and properties
  * contained in frame.
  *
- * @param perms permissions to assign to the new buffer reference
+ * @param perms permissions to assign to the new readPCMBuffer reference
  * @deprecated avfilter APIs work natively with AVFrame instead.
  */
 attribute_deprecated
@@ -71,7 +71,7 @@ AVFilterBufferRef *avfilter_get_buffer_ref_from_frame(enum AVMediaType type,
  * Fill an AVFrame with the information stored in samplesref.
  *
  * @param frame an already allocated AVFrame
- * @param samplesref an audio buffer reference
+ * @param samplesref an audio readPCMBuffer reference
  * @return >= 0 in case of success, a negative AVERROR code in case of
  * failure
  * @deprecated Use avfilter_copy_buf_props() instead.
@@ -84,7 +84,7 @@ int avfilter_fill_frame_from_audio_buffer_ref(AVFrame *frame,
  * Fill an AVFrame with the information stored in picref.
  *
  * @param frame an already allocated AVFrame
- * @param picref a video buffer reference
+ * @param picref a video readPCMBuffer reference
  * @return >= 0 in case of success, a negative AVERROR code in case of
  * failure
  * @deprecated Use avfilter_copy_buf_props() instead.
@@ -97,7 +97,7 @@ int avfilter_fill_frame_from_video_buffer_ref(AVFrame *frame,
  * Fill an AVFrame with information stored in ref.
  *
  * @param frame an already allocated AVFrame
- * @param ref a video or audio buffer reference
+ * @param ref a video or audio readPCMBuffer reference
  * @return >= 0 in case of success, a negative AVERROR code in case of
  * failure
  * @deprecated Use avfilter_copy_buf_props() instead.

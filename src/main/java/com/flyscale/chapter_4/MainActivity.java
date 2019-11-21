@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Log.i(TAG, "Click AudioTrack Stop Btn");
                 // 普通AudioTrack的停止播放
                 if (null != openSLESSoundPlayer) {
-                    openSLESSoundPlayer.stop();
+                    openSLESSoundPlayer.Stop();
                     openSLESSoundPlayer = null;
                 }
                 break;*/
